@@ -1,6 +1,6 @@
-# ai-MyNotes DevContainer環境
+# NewsFlow  DevContainer環境
 
-このフォルダには、LearnRx プロジェクト用のDevContainer設定が含まれています。
+このフォルダには、NewsFlow プロジェクト用のDevContainer設定が含まれています。
 
 ## 環境概要
 
