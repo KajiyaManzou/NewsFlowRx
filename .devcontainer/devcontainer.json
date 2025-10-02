@@ -1,0 +1,86 @@
+{
+    "name": "Search For NewsFow Development",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    // VS Code の設定
+    "customizations": {
+        "vscode": {
+            // 推奨拡張機能
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit",
+                "ms-dotnettools.blazorwasm-companion",
+                "ms-vscode.vscode-json",
+                "bradlc.vscode-tailwindcss",
+                "ms-vscode.vscode-typescript-next",
+                "formulahendry.auto-rename-tag",
+                "christian-kohler.path-intellisense",
+                "ms-vscode.powershell"
+            ],
+            // エディター設定
+            "settings": {
+                "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+                "dotnet.inlayHints.enableInlayHintsForParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForLiteralParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForObjectCreationParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForOtherParameters": true,
+                "dotnet.inlayHints.enableInlayHintsForIndexerParameters": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": true,
+                "dotnet.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": true,
+                "files.exclude": {
+                    "**/bin": true,
+                    "**/obj": true
+                },
+                "editor.tabSize": 4,
+                "editor.insertSpaces": true,
+                "editor.formatOnSave": true
+            }
+        }
+    },
+    // ポートフォワーディング
+    "forwardPorts": [
+        5000,
+        5001,
+        3000
+    ],
+    "portsAttributes": {
+        "5000": {
+            "label": "HTTP",
+            "protocol": "http"
+        },
+        "5001": {
+            "label": "HTTPS",
+            "protocol": "https"
+        },
+        "3000": {
+            "label": "Development Server",
+            "protocol": "http"
+        }
+    },
+    // コンテナ起動後に実行するコマンド
+    "postCreateCommand": "dotnet --version && echo 'DevContainer setup complete!'",
+    // コンテナ起動設定
+    "runArgs": [
+        "--name",
+        "NewsFlow-devcontainer"
+    ],
+    // リモートユーザー設定
+    "remoteUser": "devuser",
+    // 環境変数
+    "containerEnv": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_USE_POLLING_FILE_WATCHER": "true"
+    },
+    // 機能追加
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        // コンテナでNode.jsをインストールしていない場合は、併せてインストールする
+        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    }
+}
