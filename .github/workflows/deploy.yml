@@ -66,6 +66,17 @@ jobs:
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
 
+      - name: Update integrity hash for index.html in service-worker-assets.js
+        run: |
+          if [ -f publish/wwwroot/service-worker-assets.js ]; then
+            echo "Updating integrity hash for index.html"
+            # Calculate new SHA-256 hash for index.html
+            NEW_HASH=$(openssl dgst -sha256 -binary publish/wwwroot/index.html | openssl base64)
+            echo "New hash: sha256-${NEW_HASH}"
+            # Update the hash in service-worker-assets.js
+            sed -i "s|\"hash\":\"sha256-[^\"]*\",\"url\":\"index.html\"|\"hash\":\"sha256-${NEW_HASH}\",\"url\":\"index.html\"|g" publish/wwwroot/service-worker-assets.js
+          fi
+
       - name: Change base path in service-worker files
         run: |
           # List files for debugging
