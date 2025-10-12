@@ -38,8 +38,21 @@ jobs:
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
 
-      - name: Change base path in service-worker.published.js
-        run: sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.published.js
+      - name: Change base path in service-worker files
+        run: |
+          # List files for debugging
+          echo "Files in publish/wwwroot:"
+          ls -la publish/wwwroot/ | grep service-worker || echo "No service-worker files found"
+
+          # Update service-worker files if they exist
+          if [ -f publish/wwwroot/service-worker.published.js ]; then
+            echo "Updating service-worker.published.js"
+            sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.published.js
+          fi
+          if [ -f publish/wwwroot/service-worker.js ]; then
+            echo "Updating service-worker.js"
+            sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.js
+          fi
 
       - name: Add .nojekyll file
         run: touch publish/wwwroot/.nojekyll
