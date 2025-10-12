@@ -1,0 +1,318 @@
+@page "/news"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@using System.Text.Json
+@using System.Text.Json.Serialization
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">ニュース検索</MudText>
+
+    <!-- 検索条件入力エリア -->
+    <MudPaper Elevation="2" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-3">検索条件</MudText>
+        
+        <!-- キーワード入力 -->
+        <MudTextField @bind-Value="searchKeywords"
+                      Label="キーワード（スペース区切りでAND検索）"
+                      Variant="Variant.Outlined"
+                      Placeholder="例: AI 人工知能 技術"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      FullWidth="true"
+                      Class="mb-3"
+                      OnKeyPress="HandleKeyPress">
+        </MudTextField>
+
+        <!-- 期間指定 -->
+        <MudGrid Class="mb-3">
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="dateFrom"
+                               Label="開始日"
+                               Variant="Variant.Outlined"
+                               DateFormat="yyyy/MM/dd"
+                               MaxDate="DateTime.Today"
+                               Culture="@(new System.Globalization.CultureInfo("ja-JP"))" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="dateTo"
+                               Label="終了日"
+                               Variant="Variant.Outlined"
+                               DateFormat="yyyy/MM/dd"
+                               MaxDate="DateTime.Today"
+                               Culture="@(new System.Globalization.CultureInfo("ja-JP"))" />
+            </MudItem>
+        </MudGrid>
+
+        <!-- 言語と並び替え -->
+        <MudGrid Class="mb-3">
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="selectedLanguage"
+                           Label="言語"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("jp")">日本語</MudSelectItem>
+                    <MudSelectItem Value="@("en")">英語</MudSelectItem>
+                    <MudSelectItem Value="@("de")">ドイツ語</MudSelectItem>
+                    <MudSelectItem Value="@("es")">スペイン語</MudSelectItem>
+                    <MudSelectItem Value="@("fr")">フランス語</MudSelectItem>
+                    <MudSelectItem Value="@("it")">イタリア語</MudSelectItem>
+                    <MudSelectItem Value="@("zh")">中国語</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="selectedSortBy"
+                           Label="並び替え"
+                           Variant="Variant.Outlined"
+                           AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("publishedAt")">公開日時</MudSelectItem>
+                    <MudSelectItem Value="@("relevancy")">関連度</MudSelectItem>
+                    <MudSelectItem Value="@("popularity")">人気度</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <!-- 検索ボタン -->
+        <MudStack Row="true" Spacing="2">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Search"
+                       OnClick="SearchNews"
+                       Disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
+                    <span>検索中...</span>
+                }
+                else
+                {
+                    <span>検索</span>
+                }
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Default"
+                       StartIcon="@Icons.Material.Filled.Clear"
+                       OnClick="ClearSearch">
+                クリア
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
+    <!-- 検索結果表示エリア -->
+    @if (searchResults != null)
+    {
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                検索結果: @searchResults.TotalResults 件
+            </MudText>
+
+            @if (searchResults.Articles == null || searchResults.Articles.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info">該当する記事が見つかりませんでした。</MudAlert>
+            }
+            else
+            {
+                <MudStack Spacing="2">
+                    @foreach (var article in searchResults.Articles)
+                    {
+                        <MudCard Elevation="1" 
+                                 Class="article-card" 
+                                 Style="cursor: pointer; transition: all 0.2s;"
+                                 @onclick="@(() => OpenArticle(article.Url))">
+                            <MudCardContent Class="pa-3">
+                                <div style="display: flex; gap: 16px;">
+                                    <!-- 画像エリア -->
+                                    <div style="flex-shrink: 0;">
+                                        @if (!string.IsNullOrEmpty(article.UrlToImage))
+                                        {
+                                            <MudImage Src="@article.UrlToImage"
+                                                      Alt="@article.Title"
+                                                      Width="120"
+                                                      Height="120"
+                                                      ObjectFit="ObjectFit.Cover"
+                                                      Style="border-radius: 4px;" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width: 120px; height: 120px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                                <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Default" />
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- テキストエリア -->
+                                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                                        <!-- タイトル（1行） -->
+                                        <MudText Typo="Typo.subtitle1" 
+                                                 Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px;">
+                                            @article.Title
+                                        </MudText>
+
+                                        <!-- 説明文（2行） -->
+                                        <MudText Typo="Typo.body2" 
+                                                 Color="Color.Secondary"
+                                                 Style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; margin-bottom: 8px; flex: 1;">
+                                            @(article.Description ?? "説明文がありません")
+                                        </MudText>
+
+                                        <!-- 情報源と日付（1行） -->
+                                        <MudText Typo="Typo.caption" 
+                                                 Color="Color.Tertiary"
+                                                 Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            @article.Source?.Name  |  @article.PublishedAt?.ToString("yyyy/MM/dd HH:mm")
+                                        </MudText>
+                                    </div>
+                                </div>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </MudStack>
+            }
+        </MudPaper>
+    }
+</MudContainer>
+
+<style>
+    .article-card:hover {
+        background-color: #f5f5f5;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+</style>
+
+@code {
+    // 検索条件
+    private string searchKeywords = string.Empty;
+    private DateTime? dateFrom = DateTime.Today.AddDays(-7);
+    private DateTime? dateTo = DateTime.Today;
+    private string selectedLanguage = "jp";
+    private string selectedSortBy = "publishedAt";
+
+    // 状態管理
+    private bool isLoading = false;
+    private NewsApiResponse? searchResults;
+
+    // NewsAPIキー（実際の使用時は appsettings.json や環境変数から取得してください）
+    private const string API_KEY = "YOUR_NEWS_API_KEY";
+
+    private async Task SearchNews()
+    {
+        if (string.IsNullOrWhiteSpace(searchKeywords))
+        {
+            Snackbar.Add("キーワードを入力してください", Severity.Warning);
+            return;
+        }
+
+        isLoading = true;
+
+        try
+        {
+            // キーワードをスペースで分割してAND条件用に連結
+            var keywords = string.Join(" AND ", searchKeywords.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            
+            // URLエンコード
+            var encodedKeywords = Uri.EscapeDataString(keywords);
+            var from = dateFrom?.ToString("yyyy-MM-dd") ?? string.Empty;
+            var to = dateTo?.ToString("yyyy-MM-dd") ?? string.Empty;
+
+            // NewsAPI エンドポイント構築
+            var url = $"https://newsapi.org/v2/everything?q={encodedKeywords}" +
+                      $"&from={from}&to={to}" +
+                      $"&language={selectedLanguage}" +
+                      $"&sortBy={selectedSortBy}" +
+                      $"&apiKey={API_KEY}";
+
+            var response = await Http.GetFromJsonAsync<NewsApiResponse>(url);
+            searchResults = response;
+
+            if (searchResults?.Articles?.Count > 0)
+            {
+                Snackbar.Add($"{searchResults.TotalResults}件の記事が見つかりました", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("記事が見つかりませんでした", Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"エラーが発生しました: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ClearSearch()
+    {
+        searchKeywords = string.Empty;
+        dateFrom = DateTime.Today.AddDays(-7);
+        dateTo = DateTime.Today;
+        selectedLanguage = "jp";
+        selectedSortBy = "publishedAt";
+        searchResults = null;
+        Snackbar.Add("検索条件をクリアしました", Severity.Info);
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            _ = SearchNews();
+        }
+    }
+
+    private void OpenArticle(string url)
+    {
+        Navigation.NavigateTo(url, true);
+    }
+
+    // NewsAPI レスポンスモデル
+    public class NewsApiResponse
+    {
+        [JsonPropertyName("status")]
+        public string Status { get; set; } = string.Empty;
+
+        [JsonPropertyName("totalResults")]
+        public int TotalResults { get; set; }
+
+        [JsonPropertyName("articles")]
+        public List<Article> Articles { get; set; } = new();
+    }
+
+    public class Article
+    {
+        [JsonPropertyName("source")]
+        public Source? Source { get; set; }
+
+        [JsonPropertyName("author")]
+        public string? Author { get; set; }
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("description")]
+        public string? Description { get; set; }
+
+        [JsonPropertyName("url")]
+        public string Url { get; set; } = string.Empty;
+
+        [JsonPropertyName("urlToImage")]
+        public string? UrlToImage { get; set; }
+
+        [JsonPropertyName("publishedAt")]
+        public DateTime? PublishedAt { get; set; }
+
+        [JsonPropertyName("content")]
+        public string? Content { get; set; }
+    }
+
+    public class Source
+    {
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+    }
+}
