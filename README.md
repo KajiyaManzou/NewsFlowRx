@@ -1,63 +1,79 @@
 # NewsFlow
 
-Learn .NET Blazor WebAssembly programming using NewsAPI
+ニュース検索アプリケーション - .NET Blazor WebAssembly + NewsAPI
 
-## 🚀 デプロイ
+![Blazor](https://img.shields.io/badge/Blazor-WebAssembly-purple)
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![MudBlazor](https://img.shields.io/badge/MudBlazor-8.13-orange)
+![PWA](https://img.shields.io/badge/PWA-Ready-green)
 
-このアプリケーションは GitHub Pages に PWA としてデプロイされます。
+## 📖 概要
 
-### デプロイ手順
+NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。リアクティブプログラミングの学習を目的とした教育プロジェクトとして開発されました。
 
-1. **GitHub Pages の設定**
-   - GitHubリポジトリの `Settings` → `Pages` に移動
-   - `Source` を `GitHub Actions` に設定
+### 主な機能
 
-2. **自動デプロイ**
-   - `main` ブランチにプッシュすると自動的にデプロイされます
-   - GitHub Actions が自動的にビルド・デプロイを実行します
+- 🔍 **キーワード検索**: スペース区切りでAND検索に対応
+- 📅 **期間指定**: 開始日・終了日で検索範囲を絞り込み
+- 🌐 **多言語対応**: 日本語、英語、ドイツ語など7言語に対応
+- 📊 **並び替え**: 公開日時、関連度、人気度で並び替え
+- 📱 **PWA対応**: オフラインキャッシュとインストール機能
+- 🎨 **モダンUI**: MudBlazorによる洗練されたマテリアルデザイン
 
-3. **アクセスURL**
-   - https://kajiyamanzou.github.io/NewsFlow/
+## 🛠️ 技術スタック
 
-### 手動デプロイ
+- **フレームワーク**: .NET 8.0 Blazor WebAssembly
+- **UIライブラリ**: MudBlazor 8.13
+- **API**: NewsAPI (無料プラン)
+- **デプロイ**: GitHub Pages + GitHub Actions
+- **ストレージ**: Blazored.LocalStorage
+- **PWA**: Service Worker + Web App Manifest
 
-GitHub の `Actions` タブから `Deploy to GitHub Pages` ワークフローを手動実行できます。
+## 🎯 学習ポイント
 
-## 🔧 ローカル開発
+このプロジェクトで学べる内容：
 
+1. **Blazor WebAssembly**
+   - コンポーネント指向の開発
+   - データバインディング
+   - ライフサイクルメソッド
+
+2. **リアクティブプログラミング**
+   - Rx.NET (System.Reactive)
+   - Debounce、DistinctUntilChanged等のオペレーター
+   - 非同期ストリーム処理
+
+3. **PWA開発**
+   - Service Workerによるキャッシング
+   - オフライン対応
+   - インストール可能なWebアプリ
+
+4. **CI/CD**
+   - GitHub Actionsによる自動デプロイ
+   - GitHub Secretsによる機密情報管理
+   - GitHub Pagesへの静的サイト配信
+
+## 🚀 クイックスタート
+
+### 前提条件
+
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [NewsAPI](https://newsapi.org/)の無料アカウント
+
+### ローカル環境でのセットアップ
+
+1. **リポジトリのクローン**
 ```bash
-# リポジトリをクローン
 git clone https://github.com/KajiyaManzou/NewsFlow.git
 cd NewsFlow
-
-# 依存関係の復元
-dotnet restore NewsFlow/NewsFlow.csproj
-
-# 開発サーバーの起動
-dotnet watch run --project NewsFlow/NewsFlow.csproj
 ```
 
-## 📱 PWA機能
-
-このアプリケーションは Progressive Web App (PWA) として動作します：
-
-- オフライン対応
-- インストール可能
-- プッシュ通知対応（予定）
-
-## 🔑 NewsAPI キーの設定
-
-### ローカル開発環境
-
-1. https://newsapi.org/ でアカウント登録してAPIキーを取得
-2. `NewsFlow/wwwroot/appsettings.json.example` をコピーして `appsettings.json` を作成：
-
+2. **APIキーの設定**
 ```bash
 cp NewsFlow/wwwroot/appsettings.json.example NewsFlow/wwwroot/appsettings.json
 ```
 
-3. `appsettings.json` にAPIキーを設定：
-
+`appsettings.json`にNewsAPIキーを設定：
 ```json
 {
   "ApiKeys": {
@@ -66,57 +82,144 @@ cp NewsFlow/wwwroot/appsettings.json.example NewsFlow/wwwroot/appsettings.json
 }
 ```
 
-⚠️ **注意**: `appsettings.json` は `.gitignore` に含まれているため、Gitにコミットされません。
+3. **アプリケーションの起動**
+```bash
+dotnet restore NewsFlow/NewsFlow.csproj
+dotnet watch run --project NewsFlow/NewsFlow.csproj
+```
 
-### GitHub Pages デプロイ用
+ブラウザで http://localhost:5000 にアクセス
 
-1. GitHubリポジトリの `Settings` → `Secrets and variables` → `Actions` に移動
-2. `New repository secret` をクリック
-3. 以下のシークレットを追加：
-   - **Name**: `NEWS_API_KEY`
-   - **Value**: あなたのNewsAPI キー
+## 📱 PWA機能
 
-GitHub Actions が自動的にこのシークレットを使用してデプロイ時に `appsettings.json` を生成します。
+このアプリケーションはPWAとして動作します：
 
-## ⚠️ セキュリティに関する重要な注意事項
+- ✅ **オフライン対応**: 一度訪問すればオフラインでも表示可能
+- ✅ **インストール可能**: ホーム画面に追加してアプリとして利用
+- ✅ **自動更新**: 新バージョンが自動的に検出・更新
+- 🔄 **キャッシュ戦略**: 静的リソースを効率的にキャッシュ
 
-**Blazor WebAssemblyの制限**：
+## 🚢 デプロイ
 
-このアプリケーションはクライアントサイド（ブラウザ）で実行されるため、以下の点に注意してください：
+### GitHub Pagesへの自動デプロイ
 
-- ✅ APIキーはGitリポジトリには含まれません
-- ✅ GitHub Secretsで安全に管理されます
-- ❌ **しかし、デプロイ後はブラウザの開発者ツールでAPIキーが見える可能性があります**
+1. **GitHub Pagesの設定**
+   - リポジトリの `Settings` → `Pages`
+   - Source: `GitHub Actions`
 
-これはBlazor WebAssemblyの仕様上の制限です。完全にAPIキーを隠蔽するには、バックエンドAPIを経由する必要があります。
+2. **GitHub Secretsの設定**
+   - `Settings` → `Secrets and variables` → `Actions`
+   - `New repository secret`をクリック
+   - Name: `NEWS_API_KEY`
+   - Value: あなたのNewsAPIキー
 
-**学習目的での使用**：
-- NewsAPIの無料プランは1日100リクエストまでの制限があります
-- 学習目的であれば、この方法でも問題ありません
-- 本番環境では必ずバックエンドAPIを使用してください
+3. **デプロイ**
+   ```bash
+   git push origin main
+   ```
 
-## ⚠️ NewsAPI の重要な制限事項
+   mainブランチへのプッシュで自動的にビルド・デプロイが実行されます。
 
-**NewsAPI 無料プランの制限**：
+### デプロイURL
 
-NewsAPIの無料プランは**localhost（開発環境）からのアクセスのみ**許可されています。
+- 本番環境: https://kajiyamanzou.github.io/NewsFlow/
 
-- ✅ ローカル開発環境: 動作します
-- ❌ GitHub Pages等の本番環境: **426 Upgrade Required エラー**が発生します
+## ⚠️ 制限事項と注意点
+
+### NewsAPI無料プランの制限
+
+NewsAPIの無料プランには以下の制限があります：
+
+| 項目 | 制限内容 |
+|------|---------|
+| アクセス元 | **localhostのみ** |
+| リクエスト数 | 100リクエスト/日 |
+| データ取得範囲 | 過去1ヶ月まで |
+| 商用利用 | 不可 |
+
+**GitHub Pagesでの動作について**：
+- ❌ 本番環境（https://kajiyamanzou.github.io/NewsFlow/）では426エラーが発生します
+- ✅ ローカル開発環境（http://localhost:5000）では正常に動作します
 
 ### 本番環境で動作させる方法
 
-1. **有料プランにアップグレード**（$449/月〜）
-   - https://newsapi.org/pricing
+#### 方法1: バックエンドプロキシを使用（推奨）
 
-2. **バックエンドプロキシを使用**（推奨）
-   - Vercel Functions, Netlify Functions, Cloudflare Workers等の無料サービスを経由
-   - バックエンドからNewsAPIを呼び出し、Blazorアプリからバックエンドを呼び出す
+無料のサーバーレスサービスを経由してNewsAPIを呼び出します：
 
-3. **別のニュースAPIを使用**
-   - GNews API (https://gnews.io/) - 無料プランあり
-   - Currents API (https://currents.api.currentsapi.services/) - 無料プランあり
+```
+ブラウザ → 自分のバックエンドAPI → NewsAPI
+```
 
-### デモについて
+**推奨サービス**：
+- [Vercel Functions](https://vercel.com/docs/functions)
+- [Netlify Functions](https://www.netlify.com/products/functions/)
+- [Cloudflare Workers](https://workers.cloudflare.com/)
 
-このリポジトリのGitHub Pagesデモは、NewsAPIの制限により**ローカル開発環境でのみ動作確認可能**です。
+#### 方法2: 有料プランにアップグレード
+
+- 費用: $449/月〜
+- 詳細: https://newsapi.org/pricing
+
+#### 方法3: 別のAPIを使用
+
+無料で本番環境からアクセス可能なAPI：
+- [GNews API](https://gnews.io/) - 100リクエスト/日（無料）
+- [Currents API](https://currents.api.currentsapi.services/) - 600リクエスト/日（無料）
+
+### セキュリティに関する注意
+
+**Blazor WebAssemblyの制限**：
+
+このアプリケーションはクライアントサイドで実行されるため：
+- ✅ APIキーはGitリポジトリに含まれません
+- ✅ GitHub Secretsで管理されます
+- ❌ ブラウザの開発者ツールでAPIキーが見える可能性があります
+
+**本番環境ではバックエンドAPIの使用を推奨します。**
+
+## 📂 プロジェクト構造
+
+```
+NewsFlow/
+├── NewsFlow/                    # メインプロジェクト
+│   ├── Pages/
+│   │   ├── News.razor          # ニュース検索ページ
+│   │   ├── Home.razor          # ホームページ
+│   │   └── ...
+│   ├── Layout/
+│   │   ├── MainLayout.razor    # メインレイアウト
+│   │   └── NavMenu.razor       # ナビゲーションメニュー
+│   ├── wwwroot/
+│   │   ├── index.html          # エントリーポイント
+│   │   ├── service-worker.js   # Service Worker
+│   │   ├── manifest.webmanifest # PWA マニフェスト
+│   │   └── appsettings.json    # 設定ファイル（Git管理外）
+│   └── Program.cs              # アプリケーションエントリーポイント
+├── .github/
+│   ├── workflows/
+│   │   └── deploy.yml          # GitHub Actions ワークフロー
+│   └── scripts/
+│       └── update-service-worker-assets.sh
+└── README.md
+```
+
+## 🤝 コントリビューション
+
+プルリクエストを歓迎します！大きな変更の場合は、まずissueを開いて変更内容を議論してください。
+
+## 📄 ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
+
+## 🙏 謝辞
+
+- [NewsAPI](https://newsapi.org/) - ニュースデータ提供
+- [MudBlazor](https://mudblazor.com/) - UIコンポーネントライブラリ
+- [.NET Team](https://dotnet.microsoft.com/) - Blazor WebAssemblyフレームワーク
+
+---
+
+**学習プロジェクトとして作成されました** 🎓
+
+このアプリケーションは、Blazor WebAssemblyとリアクティブプログラミングの学習を目的としています。商用利用を想定していません。
