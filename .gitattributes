@@ -1,0 +1,29 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts should always use LF
+*.sh text eol=lf
+
+# Batch scripts should always use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Source code
+*.cs text diff=csharp
+*.razor text
+*.json text
+*.js text
+*.css text
+*.html text
+*.md text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
