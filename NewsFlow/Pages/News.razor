@@ -243,6 +243,10 @@
                 Snackbar.Add("記事が見つかりませんでした", Severity.Info);
             }
         }
+        catch (HttpRequestException ex) when (ex.Message.Contains("426"))
+        {
+            Snackbar.Add("⚠️ NewsAPIの無料プランはlocalhost専用です。本番環境では動作しません。詳細はREADMEをご確認ください。", Severity.Warning);
+        }
         catch (Exception ex)
         {
             Snackbar.Add($"エラーが発生しました: {ex.Message}", Severity.Error);

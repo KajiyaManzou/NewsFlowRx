@@ -94,3 +94,29 @@ GitHub Actions が自動的にこのシークレットを使用してデプロ�
 - NewsAPIの無料プランは1日100リクエストまでの制限があります
 - 学習目的であれば、この方法でも問題ありません
 - 本番環境では必ずバックエンドAPIを使用してください
+
+## ⚠️ NewsAPI の重要な制限事項
+
+**NewsAPI 無料プランの制限**：
+
+NewsAPIの無料プランは**localhost（開発環境）からのアクセスのみ**許可されています。
+
+- ✅ ローカル開発環境: 動作します
+- ❌ GitHub Pages等の本番環境: **426 Upgrade Required エラー**が発生します
+
+### 本番環境で動作させる方法
+
+1. **有料プランにアップグレード**（$449/月〜）
+   - https://newsapi.org/pricing
+
+2. **バックエンドプロキシを使用**（推奨）
+   - Vercel Functions, Netlify Functions, Cloudflare Workers等の無料サービスを経由
+   - バックエンドからNewsAPIを呼び出し、Blazorアプリからバックエンドを呼び出す
+
+3. **別のニュースAPIを使用**
+   - GNews API (https://gnews.io/) - 無料プランあり
+   - Currents API (https://currents.api.currentsapi.services/) - 無料プランあり
+
+### デモについて
+
+このリポジトリのGitHub Pagesデモは、NewsAPIの制限により**ローカル開発環境でのみ動作確認可能**です。
