@@ -55,6 +55,14 @@ jobs:
           # Replace placeholder with actual value
           sed -i "s/\$NEWS_API_KEY/${NEWS_API_KEY}/g" publish/wwwroot/appsettings.json
 
+      - name: Remove appsettings.json from service-worker-assets.js
+        run: |
+          if [ -f publish/wwwroot/service-worker-assets.js ]; then
+            echo "Removing appsettings.json from service-worker-assets.js"
+            # Remove appsettings.json entry from the assets array
+            sed -i '/appsettings\.json/d' publish/wwwroot/service-worker-assets.js
+          fi
+
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
 
