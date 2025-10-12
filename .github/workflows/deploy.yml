@@ -52,38 +52,13 @@ jobs:
             }
           }
           EOF
-          # Replace placeholder with actual value
           sed -i "s/\$NEWS_API_KEY/${NEWS_API_KEY}/g" publish/wwwroot/appsettings.json
-
-      - name: Remove appsettings.json from service-worker-assets.js
-        run: |
-          if [ -f publish/wwwroot/service-worker-assets.js ]; then
-            echo "Removing appsettings.json from service-worker-assets.js"
-            # Remove appsettings.json entry from the assets array
-            sed -i '/appsettings\.json/d' publish/wwwroot/service-worker-assets.js
-          fi
 
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
 
-      - name: Update integrity hash for index.html in service-worker-assets.js
-        run: |
-          if [ -f publish/wwwroot/service-worker-assets.js ]; then
-            echo "Updating integrity hash for index.html"
-            # Calculate new SHA-256 hash for index.html
-            NEW_HASH=$(openssl dgst -sha256 -binary publish/wwwroot/index.html | openssl base64)
-            echo "New hash: sha256-${NEW_HASH}"
-            # Update the hash in service-worker-assets.js
-            sed -i "s|\"hash\":\"sha256-[^\"]*\",\"url\":\"index.html\"|\"hash\":\"sha256-${NEW_HASH}\",\"url\":\"index.html\"|g" publish/wwwroot/service-worker-assets.js
-          fi
-
       - name: Change base path in service-worker files
         run: |
-          # List files for debugging
-          echo "Files in publish/wwwroot:"
-          ls -la publish/wwwroot/ | grep service-worker || echo "No service-worker files found"
-
-          # Update service-worker files if they exist
           if [ -f publish/wwwroot/service-worker.published.js ]; then
             echo "Updating service-worker.published.js"
             sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.published.js
@@ -92,6 +67,11 @@ jobs:
             echo "Updating service-worker.js"
             sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.js
           fi
+
+      - name: Update service-worker-assets.js integrity hashes
+        run: |
+          chmod +x .github/scripts/update-service-worker-assets.sh
+          .github/scripts/update-service-worker-assets.sh publish/wwwroot
 
       - name: Add .nojekyll file
         run: touch publish/wwwroot/.nojekyll
