@@ -47,17 +47,16 @@ dotnet watch run --project NewsFlow/NewsFlow.csproj
 
 ## 🔑 NewsAPI キーの設定
 
-NewsAPI を使用するには API キーが必要です：
+### ローカル開発環境
 
-1. https://newsapi.org/ でアカウント登録
-2. API キーを取得
-3. `NewsFlow/Pages/News.razor` の `ApiKey` プロパティを設定
+1. https://newsapi.org/ でアカウント登録してAPIキーを取得
+2. `NewsFlow/wwwroot/appsettings.json.example` をコピーして `appsettings.json` を作成：
 
-```csharp
-private string ApiKey => Configuration["ApiKeys:NewsAPIKey"] ?? "YOUR_API_KEY_HERE";
+```bash
+cp NewsFlow/wwwroot/appsettings.json.example NewsFlow/wwwroot/appsettings.json
 ```
 
-または、`appsettings.json` に設定：
+3. `appsettings.json` にAPIキーを設定：
 
 ```json
 {
@@ -66,3 +65,32 @@ private string ApiKey => Configuration["ApiKeys:NewsAPIKey"] ?? "YOUR_API_KEY_HE
   }
 }
 ```
+
+⚠️ **注意**: `appsettings.json` は `.gitignore` に含まれているため、Gitにコミットされません。
+
+### GitHub Pages デプロイ用
+
+1. GitHubリポジトリの `Settings` → `Secrets and variables` → `Actions` に移動
+2. `New repository secret` をクリック
+3. 以下のシークレットを追加：
+   - **Name**: `NEWS_API_KEY`
+   - **Value**: あなたのNewsAPI キー
+
+GitHub Actions が自動的にこのシークレットを使用してデプロイ時に `appsettings.json` を生成します。
+
+## ⚠️ セキュリティに関する重要な注意事項
+
+**Blazor WebAssemblyの制限**：
+
+このアプリケーションはクライアントサイド（ブラウザ）で実行されるため、以下の点に注意してください：
+
+- ✅ APIキーはGitリポジトリには含まれません
+- ✅ GitHub Secretsで安全に管理されます
+- ❌ **しかし、デプロイ後はブラウザの開発者ツールでAPIキーが見える可能性があります**
+
+これはBlazor WebAssemblyの仕様上の制限です。完全にAPIキーを隠蔽するには、バックエンドAPIを経由する必要があります。
+
+**学習目的での使用**：
+- NewsAPIの無料プランは1日100リクエストまでの制限があります
+- 学習目的であれば、この方法でも問題ありません
+- 本番環境では必ずバックエンドAPIを使用してください

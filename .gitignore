@@ -66,3 +66,7 @@ appsettings.Development.json
 # 環境変数やデバッグ時の設定ファイル
 appsettings.Staging.json
 appsettings.Production.json
+
+# Blazor WebAssembly の appsettings.json（APIキーを含む）
+**/wwwroot/appsettings.json
+**/wwwroot/appsettings.Development.json

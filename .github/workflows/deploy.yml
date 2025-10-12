@@ -35,6 +35,26 @@ jobs:
       - name: Publish
         run: dotnet publish NewsFlow/NewsFlow.csproj -c Release -o publish
 
+      - name: Create appsettings.json with API key from secrets
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+        run: |
+          cat > publish/wwwroot/appsettings.json << 'EOF'
+          {
+            "ApiKeys": {
+              "NewsAPIKey": "$NEWS_API_KEY"
+            },
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            }
+          }
+          EOF
+          # Replace placeholder with actual value
+          sed -i "s/\$NEWS_API_KEY/${NEWS_API_KEY}/g" publish/wwwroot/appsettings.json
+
       - name: Change base href in index.html
         run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
 
