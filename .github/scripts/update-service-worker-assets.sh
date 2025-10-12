@@ -2,11 +2,24 @@
 set -e
 
 WWWROOT_PATH="$1"
+
+if [ -z "$WWWROOT_PATH" ]; then
+  echo "Error: WWWROOT_PATH not provided"
+  echo "Usage: $0 <wwwroot_path>"
+  exit 1
+fi
+
+if [ ! -d "$WWWROOT_PATH" ]; then
+  echo "Error: Directory not found: ${WWWROOT_PATH}"
+  exit 1
+fi
+
 ASSETS_FILE="${WWWROOT_PATH}/service-worker-assets.js"
 
 if [ ! -f "$ASSETS_FILE" ]; then
-  echo "service-worker-assets.js not found at ${ASSETS_FILE}"
-  exit 1
+  echo "Warning: service-worker-assets.js not found at ${ASSETS_FILE}"
+  echo "Skipping integrity hash updates..."
+  exit 0
 fi
 
 echo "Updating integrity hashes in service-worker-assets.js..."

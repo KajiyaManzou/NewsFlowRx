@@ -70,8 +70,14 @@ jobs:
 
       - name: Update service-worker-assets.js integrity hashes
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Checking if script exists..."
+          ls -la .github/scripts/update-service-worker-assets.sh
+          echo "Checking if publish/wwwroot exists..."
+          ls -la publish/wwwroot/ | head -10
+          echo "Running script..."
           chmod +x .github/scripts/update-service-worker-assets.sh
-          .github/scripts/update-service-worker-assets.sh publish/wwwroot
+          bash .github/scripts/update-service-worker-assets.sh publish/wwwroot
 
       - name: Add .nojekyll file
         run: touch publish/wwwroot/.nojekyll
