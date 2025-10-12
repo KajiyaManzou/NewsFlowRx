@@ -9,7 +9,7 @@
 
 ## 📖 概要
 
-NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。リアクティブプログラミングの学習を目的とした教育プロジェクトとして開発されました。
+NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。.NET Blazor WebAssemblyプログラミングの学習を目的とした教育プロジェクトとして開発されました。
 
 ### 主な機能
 
@@ -38,17 +38,12 @@ NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索
    - データバインディング
    - ライフサイクルメソッド
 
-2. **リアクティブプログラミング**
-   - Rx.NET (System.Reactive)
-   - Debounce、DistinctUntilChanged等のオペレーター
-   - 非同期ストリーム処理
-
-3. **PWA開発**
+2. **PWA開発**
    - Service Workerによるキャッシング
    - オフライン対応
    - インストール可能なWebアプリ
 
-4. **CI/CD**
+3. **CI/CD**
    - GitHub Actionsによる自動デプロイ
    - GitHub Secretsによる機密情報管理
    - GitHub Pagesへの静的サイト配信
@@ -222,4 +217,4 @@ NewsFlow/
 
 **学習プロジェクトとして作成されました** 🎓
 
-このアプリケーションは、Blazor WebAssemblyとリアクティブプログラミングの学習を目的としています。商用利用を想定していません。
+このアプリケーションは、Blazor WebAssemblyの学習を目的としています。商用利用を想定していません。
