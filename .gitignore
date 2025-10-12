@@ -52,3 +52,17 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# ------------------------------------
+# 1. 機密性の高い設定ファイルを除外
+# ------------------------------------
+# すべてのappsettings.*.jsonファイルを除外
+# ※ ただし、本番環境の appsettings.json（キーが含まれないテンプレート）は含める場合があるため、
+#    ここではDevelopmentファイルやシークレットを含むファイルに限定する方が安全。
+
+# 開発環境用設定（秘匿性が高いキーを含む可能性がある）
+appsettings.Development.json
+
+# 環境変数やデバッグ時の設定ファイル
+appsettings.Staging.json
+appsettings.Production.json
