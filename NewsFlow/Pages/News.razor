@@ -1,182 +1,155 @@
 @page "/"
 @inject HttpClient Http
-@inject ISnackbar Snackbar
+@inject ToastService ToastService
 @inject NavigationManager Navigation
 @using System.Text.Json
 @using System.Text.Json.Serialization
 
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudText Typo="Typo.h4" Class="mb-4">ニュース検索</MudText>
+<div class="container mt-4">
+    <h4 class="mb-4">ニュース検索</h4>
 
     <!-- 検索条件入力エリア -->
-    <MudPaper Elevation="2" Class="pa-4 mb-4">
-        <MudText Typo="Typo.h6" Class="mb-3">検索条件</MudText>
-        
-        <!-- キーワード入力 -->
-        <MudTextField @bind-Value="searchKeywords"
-                      Label="キーワード（スペース区切りでAND検索）"
-                      Variant="Variant.Outlined"
-                      Placeholder="例: AI 人工知能 技術"
-                      Adornment="Adornment.End"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      FullWidth="true"
-                      Class="mb-3"
-                      OnKeyDown="HandleKeyPress">
-        </MudTextField>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="card-title mb-3">検索条件</h6>
 
-        <!-- 期間指定 -->
-        <MudGrid Class="mb-3">
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="dateFrom"
-                               Label="開始日"
-                               Variant="Variant.Outlined"
-                               DateFormat="yyyy/MM/dd"
-                               MaxDate="DateTime.Today"
-                               Culture="@(new System.Globalization.CultureInfo("ja-JP"))" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="dateTo"
-                               Label="終了日"
-                               Variant="Variant.Outlined"
-                               DateFormat="yyyy/MM/dd"
-                               MaxDate="DateTime.Today"
-                               Culture="@(new System.Globalization.CultureInfo("ja-JP"))" />
-            </MudItem>
-        </MudGrid>
+            <!-- キーワード入力 -->
+            <div class="mb-3">
+                <BootstrapInput @bind-Value="searchKeywords"
+                               placeholder="例: AI 人工知能 技術"
+                               DisplayText="キーワード（スペース区切りでAND検索）"
+                               @onkeydown="HandleKeyPress" />
+            </div>
 
-        <!-- 言語と並び替え -->
-        <MudGrid Class="mb-3">
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="selectedLanguage"
-                           Label="言語"
-                           Variant="Variant.Outlined"
-                           AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@("jp")">日本語</MudSelectItem>
-                    <MudSelectItem Value="@("en")">英語</MudSelectItem>
-                    <MudSelectItem Value="@("de")">ドイツ語</MudSelectItem>
-                    <MudSelectItem Value="@("es")">スペイン語</MudSelectItem>
-                    <MudSelectItem Value="@("fr")">フランス語</MudSelectItem>
-                    <MudSelectItem Value="@("it")">イタリア語</MudSelectItem>
-                    <MudSelectItem Value="@("zh")">中国語</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="selectedSortBy"
-                           Label="並び替え"
-                           Variant="Variant.Outlined"
-                           AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@("publishedAt")">公開日時</MudSelectItem>
-                    <MudSelectItem Value="@("relevancy")">関連度</MudSelectItem>
-                    <MudSelectItem Value="@("popularity")">人気度</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-        </MudGrid>
+            <!-- 期間指定 -->
+            <div class="row mb-3">
+                <div class="col-12 col-sm-6 mb-3 mb-sm-0">
+                    <DateTimePicker @bind-Value="dateFrom"
+                                   DateFormat="yyyy/MM/dd"
+                                   MaxValue="DateTime.Today"
+                                   ViewMode="DatePickerViewMode.Date"
+                                   DisplayText="開始日" />
+                </div>
+                <div class="col-12 col-sm-6">
+                    <DateTimePicker @bind-Value="dateTo"
+                                   DateFormat="yyyy/MM/dd"
+                                   MaxValue="DateTime.Today"
+                                   ViewMode="DatePickerViewMode.Date"
+                                   DisplayText="終了日" />
+                </div>
+            </div>
 
-        <!-- 検索ボタン -->
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Search"
+            <!-- 言語と並び替え -->
+            <div class="row mb-3">
+                <div class="col-12 col-sm-6 mb-3 mb-sm-0">
+                    <Select @bind-Value="selectedLanguage"
+                           DisplayText="言語"
+                           Items="@languageOptions" />
+                </div>
+                <div class="col-12 col-sm-6">
+                    <Select @bind-Value="selectedSortBy"
+                           DisplayText="並び替え"
+                           Items="@sortByOptions" />
+                </div>
+            </div>
+
+            <!-- 検索ボタン -->
+            <div class="d-flex gap-2">
+                <Button Color="Color.Primary"
+                       Icon="fa-solid fa-search"
                        OnClick="SearchNews"
-                       Disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
-                    <span>検索中...</span>
-                }
-                else
-                {
-                    <span>検索</span>
-                }
-            </MudButton>
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Default"
-                       StartIcon="@Icons.Material.Filled.Clear"
+                       IsDisabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span>検索中...</span>
+                    }
+                    else
+                    {
+                        <span>検索</span>
+                    }
+                </Button>
+                <Button Color="Color.Secondary"
+                       Icon="fa-solid fa-times"
                        OnClick="ClearSearch">
-                クリア
-            </MudButton>
-        </MudStack>
-    </MudPaper>
+                    クリア
+                </Button>
+            </div>
+        </div>
+    </div>
 
     <!-- 検索結果表示エリア -->
     @if (searchResults != null)
     {
-        <MudPaper Elevation="2" Class="pa-4">
-            <MudText Typo="Typo.h6" Class="mb-3">
-                検索結果: @searchResults.TotalResults 件
-            </MudText>
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title mb-3">
+                    検索結果: @searchResults.TotalResults 件
+                </h6>
 
-            @if (searchResults.Articles == null || searchResults.Articles.Count == 0)
-            {
-                <MudAlert Severity="Severity.Info">該当する記事が見つかりませんでした。</MudAlert>
-            }
-            else
-            {
-                <MudStack Spacing="2">
-                    @foreach (var article in searchResults.Articles)
-                    {
-                        <MudCard Elevation="1" 
-                                 Class="article-card" 
-                                 Style="cursor: pointer; transition: all 0.2s;"
+                @if (searchResults.Articles == null || searchResults.Articles.Count == 0)
+                {
+                    <div class="alert alert-info" role="alert">
+                        該当する記事が見つかりませんでした。
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var article in searchResults.Articles)
+                        {
+                            <div class="card article-card" style="cursor: pointer; transition: all 0.2s;"
                                  @onclick="@(() => OpenArticle(article.Url))">
-                            <MudCardContent Class="pa-3">
-                                <div style="display: flex; gap: 16px;">
-                                    <!-- 画像エリア -->
-                                    <div style="flex-shrink: 0;">
-                                        @if (!string.IsNullOrEmpty(article.UrlToImage))
-                                        {
-                                            <MudImage Src="@article.UrlToImage"
-                                                      Alt="@article.Title"
-                                                      Width="120"
-                                                      Height="120"
-                                                      ObjectFit="ObjectFit.Cover"
-                                                      Style="border-radius: 4px;" />
-                                        }
-                                        else
-                                        {
-                                            <div style="width: 120px; height: 120px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
-                                                <MudIcon Icon="@Icons.Material.Filled.Image" Size="Size.Large" Color="Color.Default" />
-                                            </div>
-                                        }
-                                    </div>
+                                <div class="card-body p-3">
+                                    <div class="d-flex gap-3">
+                                        <!-- 画像エリア -->
+                                        <div class="flex-shrink-0">
+                                            @if (!string.IsNullOrEmpty(article.UrlToImage))
+                                            {
+                                                <img src="@article.UrlToImage"
+                                                     alt="@article.Title"
+                                                     style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 120px; height: 120px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                                    <i class="fa-solid fa-image fa-2x text-muted"></i>
+                                                </div>
+                                            }
+                                        </div>
 
-                                    <!-- テキストエリア -->
-                                    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
-                                        <!-- タイトル（1行） -->
-                                        <MudText Typo="Typo.subtitle1" 
-                                                 Style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4px;">
-                                            @article.Title
-                                        </MudText>
+                                        <!-- テキストエリア -->
+                                        <div class="flex-grow-1 d-flex flex-column" style="min-width: 0;">
+                                            <!-- タイトル（1行） -->
+                                            <h6 class="mb-1 text-truncate" style="font-weight: 600;">
+                                                @article.Title
+                                            </h6>
 
-                                        <!-- 説明文（2行） -->
-                                        <MudText Typo="Typo.body2" 
-                                                 Color="Color.Secondary"
-                                                 Style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; margin-bottom: 8px; flex: 1;">
-                                            @(article.Description ?? "説明文がありません")
-                                        </MudText>
+                                            <!-- 説明文（2行） -->
+                                            <p class="text-muted mb-2 flex-grow-1" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; font-size: 0.875rem;">
+                                                @(article.Description ?? "説明文がありません")
+                                            </p>
 
-                                        <!-- 情報源と日付（1行） -->
-                                        <MudText Typo="Typo.caption" 
-                                                 Color="Color.Tertiary"
-                                                 Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                            @article.Source?.Name  |  @article.PublishedAt?.ToString("yyyy/MM/dd HH:mm")
-                                        </MudText>
+                                            <!-- 情報源と日付（1行） -->
+                                            <small class="text-muted text-truncate">
+                                                @article.Source?.Name  |  @article.PublishedAt?.ToString("yyyy/MM/dd HH:mm")
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
-                            </MudCardContent>
-                        </MudCard>
-                    }
-                </MudStack>
-            }
-        </MudPaper>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
     }
-</MudContainer>
+</div>
 
 <style>
     .article-card:hover {
-        background-color: #f5f5f5;
+        background-color: #f8f9fa;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
     }
 </style>
@@ -193,12 +166,27 @@
     private bool isLoading = false;
     private NewsApiResponse? searchResults;
 
-    // NewsAPIキー（実際の使用時は appsettings.json や環境変数から取得してください）
-    //private const string API_KEY = "YOUR_NEWS_API_KEY";
-    //private string ApiKey = Configuration["ApiKeys:NewsAPIKey"] ?? "YOUR_NEWS_API_KEY";
-
     private string ApiKey = string.Empty;
     private string NewsAPIUrl = string.Empty;
+
+    // Select用のオプション
+    private List<SelectedItem> languageOptions = new()
+    {
+        new SelectedItem("jp", "日本語"),
+        new SelectedItem("en", "英語"),
+        new SelectedItem("de", "ドイツ語"),
+        new SelectedItem("es", "スペイン語"),
+        new SelectedItem("fr", "フランス語"),
+        new SelectedItem("it", "イタリア語"),
+        new SelectedItem("zh", "中国語")
+    };
+
+    private List<SelectedItem> sortByOptions = new()
+    {
+        new SelectedItem("publishedAt", "公開日時"),
+        new SelectedItem("relevancy", "関連度"),
+        new SelectedItem("popularity", "人気度")
+    };
 
     protected override void OnInitialized()
     {
@@ -210,7 +198,7 @@
     {
         if (string.IsNullOrWhiteSpace(searchKeywords))
         {
-            Snackbar.Add("キーワードを入力してください", Severity.Warning);
+            await ToastService.Warning("キーワード入力", "キーワードを入力してください");
             return;
         }
 
@@ -220,7 +208,7 @@
         {
             // キーワードをスペースで分割してAND条件用に連結
             var keywords = string.Join(" AND ", searchKeywords.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-            
+
             // URLエンコード
             var encodedKeywords = Uri.EscapeDataString(keywords);
             var from = dateFrom?.ToString("yyyy-MM-dd") ?? string.Empty;
@@ -238,20 +226,20 @@
 
             if (searchResults?.Articles?.Count > 0)
             {
-                Snackbar.Add($"{searchResults.TotalResults}件の記事が見つかりました", Severity.Success);
+                await ToastService.Success("検索成功", $"{searchResults.TotalResults}件の記事が見つかりました");
             }
             else
             {
-                Snackbar.Add("記事が見つかりませんでした", Severity.Info);
+                await ToastService.Information("検索結果", "記事が見つかりませんでした");
             }
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("426"))
         {
-            Snackbar.Add("⚠️ NewsAPIの無料プランはlocalhost専用です。本番環境では動作しません。詳細はREADMEをご確認ください。", Severity.Warning);
+            await ToastService.Warning("制限事項", "⚠️ NewsAPIの無料プランはlocalhost専用です。本番環境では動作しません。詳細はREADMEをご確認ください。");
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"エラーが発生しました: {ex.Message}", Severity.Error);
+            await ToastService.Error("エラー", $"エラーが発生しました: {ex.Message}");
         }
         finally
         {
@@ -259,7 +247,7 @@
         }
     }
 
-    private void ClearSearch()
+    private async Task ClearSearch()
     {
         searchKeywords = string.Empty;
         dateFrom = DateTime.Today.AddDays(-7);
@@ -267,7 +255,7 @@
         selectedLanguage = "jp";
         selectedSortBy = "publishedAt";
         searchResults = null;
-        Snackbar.Add("検索条件をクリアしました", Severity.Info);
+        await ToastService.Information("クリア", "検索条件をクリアしました");
     }
 
     private void HandleKeyPress(KeyboardEventArgs e)

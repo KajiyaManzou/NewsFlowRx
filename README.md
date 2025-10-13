@@ -1,15 +1,29 @@
-# NewsFlow
+# NewsFlowBB (旧 NewsFlow)
 
 ニュース検索アプリケーション - .NET Blazor WebAssembly + NewsAPI
 
 ![Blazor](https://img.shields.io/badge/Blazor-WebAssembly-purple)
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
-![MudBlazor](https://img.shields.io/badge/MudBlazor-8.13-orange)
+![BootstrapBlazor](https://img.shields.io/badge/BootstrapBlazor-9.11-blue)
 ![PWA](https://img.shields.io/badge/PWA-Ready-green)
+![Tests](https://img.shields.io/badge/Tests-xUnit%20%2B%20bUnit-success)
 
 ## 📖 概要
 
-NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。.NET Blazor WebAssemblyプログラミングの学習を目的とした教育プロジェクトとして開発されました。
+NewsFlowBBは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。.NET Blazor WebAssemblyプログラミングの学習を目的とした教育プロジェクトとして開発されました。
+
+### UIフレームワーク変更履歴
+
+**2025年：MudBlazor → BootstrapBlazor へ移行**
+
+MudBlazorは優れたUIコンポーネントライブラリですが、単体テスト（xUnit + bUnit）の実装が複雑で、チーム開発での保守性に課題があることが判明しました。そのため、より軽量でテストしやすいBootstrapBlazorに移行しました。
+
+**移行の主な理由：**
+- 単体テストの実装が容易
+- コンポーネントのシンプルな構造
+- チーム開発での保守性向上
+- Bootstrapベースの親しみやすいUI
+
 
 ### 主な機能
 
@@ -18,16 +32,18 @@ NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索
 - 🌐 **多言語対応**: 日本語、英語、ドイツ語など7言語に対応
 - 📊 **並び替え**: 公開日時、関連度、人気度で並び替え
 - 📱 **PWA対応**: オフラインキャッシュとインストール機能
-- 🎨 **モダンUI**: MudBlazorによる洗練されたマテリアルデザイン
+- 🎨 **モダンUI**: BootstrapBlazorによる直感的なBootstrapデザイン
+- ✅ **単体テスト**: xUnit + bUnitによるコンポーネントテスト
 
 ## 🛠️ 技術スタック
 
 - **フレームワーク**: .NET 8.0 Blazor WebAssembly
-- **UIライブラリ**: MudBlazor 8.13
+- **UIライブラリ**: BootstrapBlazor 9.11
 - **API**: NewsAPI (無料プラン)
 - **デプロイ**: GitHub Pages + GitHub Actions
 - **ストレージ**: Blazored.LocalStorage
 - **PWA**: Service Worker + Web App Manifest
+- **テスト**: xUnit 2.5 + bUnit 1.40 + Moq 4.20
 
 ## 🎯 学習ポイント
 
@@ -43,7 +59,12 @@ NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索
    - オフライン対応
    - インストール可能なWebアプリ
 
-3. **CI/CD**
+3. **単体テスト**
+   - xUnitによるユニットテスト
+   - bUnitによるBlazorコンポーネントテスト
+   - Moqによるモックオブジェクト作成
+
+4. **CI/CD**
    - GitHub Actionsによる自動デプロイ
    - GitHub Secretsによる機密情報管理
    - GitHub Pagesへの静的サイト配信
@@ -59,8 +80,8 @@ NewsFlowは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索
 
 1. **リポジトリのクローン**
 ```bash
-git clone https://github.com/KajiyaManzou/NewsFlow.git
-cd NewsFlow
+git clone https://github.com/KajiyaManzou/NewsFlowBB.git
+cd NewsFlowBB
 ```
 
 2. **APIキーの設定**
@@ -84,6 +105,11 @@ dotnet watch run --project NewsFlow/NewsFlow.csproj
 ```
 
 ブラウザで http://localhost:5000 にアクセス
+
+4. **テストの実行**
+```bash
+dotnet test NewsFlow.Tests/NewsFlow.Tests.csproj
+```
 
 ## 📱 PWA機能
 
@@ -117,7 +143,7 @@ dotnet watch run --project NewsFlow/NewsFlow.csproj
 
 ### デプロイURL
 
-- 本番環境: https://kajiyamanzou.github.io/NewsFlow/
+- 本番環境: https://kajiyamanzou.github.io/NewsFlowBB/
 
 ## ⚠️ 制限事項と注意点
 
@@ -133,7 +159,7 @@ NewsAPIの無料プランには以下の制限があります：
 | 商用利用 | 不可 |
 
 **GitHub Pagesでの動作について**：
-- ❌ 本番環境（https://kajiyamanzou.github.io/NewsFlow/）では426エラーが発生します
+- ❌ 本番環境（https://kajiyamanzou.github.io/NewsFlowBB/）では426エラーが発生します
 - ✅ ローカル開発環境（http://localhost:5000）では正常に動作します
 
 ### 本番環境で動作させる方法
@@ -176,7 +202,7 @@ NewsAPIの無料プランには以下の制限があります：
 ## 📂 プロジェクト構造
 
 ```
-NewsFlow/
+NewsFlowBB/
 ├── NewsFlow/                    # メインプロジェクト
 │   ├── Pages/
 │   │   ├── News.razor          # ニュース検索ページ
@@ -190,7 +216,11 @@ NewsFlow/
 │   │   ├── service-worker.js   # Service Worker
 │   │   ├── manifest.webmanifest # PWA マニフェスト
 │   │   └── appsettings.json    # 設定ファイル（Git管理外）
-│   └── Program.cs              # アプリケーションエントリーポイント
+│   ├── Program.cs              # アプリケーションエントリーポイント
+│   └── NewsFlow.csproj         # プロジェクトファイル
+├── NewsFlow.Tests/              # テストプロジェクト
+│   ├── [テストファイル].cs      # xUnit + bUnit テスト
+│   └── NewsFlow.Tests.csproj   # テストプロジェクトファイル
 ├── .github/
 │   ├── workflows/
 │   │   └── deploy.yml          # GitHub Actions ワークフロー
@@ -210,8 +240,9 @@ NewsFlow/
 ## 🙏 謝辞
 
 - [NewsAPI](https://newsapi.org/) - ニュースデータ提供
-- [MudBlazor](https://mudblazor.com/) - UIコンポーネントライブラリ
+- [BootstrapBlazor](https://www.blazor.zone/) - UIコンポーネントライブラリ
 - [.NET Team](https://dotnet.microsoft.com/) - Blazor WebAssemblyフレームワーク
+- [bUnit](https://bunit.dev/) - Blazorコンポーネントテストライブラリ
 
 ---
 
