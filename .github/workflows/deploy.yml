@@ -35,15 +35,17 @@ jobs:
       - name: Publish
         run: dotnet publish NewsFlow/NewsFlow.csproj -c Release -o publish
 
-      - name: Create appsettings.json with API key from secrets
+      - name: Create appsettings files with API key from secrets
         env:
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          NEWS_API_URL: https://newsapi.org/v2/everything
         run: |
-          cat > publish/wwwroot/appsettings.json << 'EOF'
+          cat > publish/wwwroot/appsettings.json <<EOF
           {
             "ApiKeys": {
-              "NewsAPIKey": "$NEWS_API_KEY"
+              "NewsAPIKey": "${NEWS_API_KEY}"
             },
+            "NewsAPIUrl": "${NEWS_API_URL}",
             "Logging": {
               "LogLevel": {
                 "Default": "Information",
@@ -52,7 +54,20 @@ jobs:
             }
           }
           EOF
-          sed -i "s/\$NEWS_API_KEY/${NEWS_API_KEY}/g" publish/wwwroot/appsettings.json
+          cat > publish/wwwroot/appsettings.Development.json <<EOF
+          {
+            "ApiKeys": {
+              "NewsAPIKey": "${NEWS_API_KEY}"
+            },
+            "NewsAPIUrl": "${NEWS_API_URL}",
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            }
+          }
+          EOF
 
       - name: Set base path for GitHub Pages
         run: |
