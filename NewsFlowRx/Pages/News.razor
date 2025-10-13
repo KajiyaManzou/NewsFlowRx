@@ -4,16 +4,27 @@
 @inject NavigationManager Navigation
 @using System.Text.Json
 @using System.Text.Json.Serialization
+@using System.Reactive.Linq
+@using System.Reactive.Subjects
 
 @inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@implements IDisposable
 
 <div class="container mt-4">
-    <h4 class="mb-4">ニュース検索</h4>
+    <h4 class="mb-4">ニュース検索Rx</h4>
 
     <!-- 検索条件入力エリア -->
     <div class="card mb-4">
         <div class="card-body">
-            <h6 class="card-title mb-3">検索条件</h6>
+            <div class="d-flex align-items-center mb-3">
+                <Button Color="Color.Secondary"
+                       Icon="fa-solid fa-times"
+                       Size="Size.Small"
+                       OnClick="ClearSearch">
+                    クリア
+                </Button>
+                <h6 class="card-title mb-0 ms-3">検索条件</h6>
+            </div>
 
             <!-- キーワード入力 -->
             <div class="mb-3">
@@ -21,7 +32,7 @@
                 <BootstrapInput @bind-Value="searchKeywords"
                                placeholder="例: AI 人工知能 技術"
                                DisplayText="キーワード（スペース区切りでAND検索）"
-                               @onkeydown="HandleKeyPress" />
+                               @oninput="OnKeywordInput" />
             </div>
 
             <!-- 期間指定 -->
@@ -32,7 +43,8 @@
                                    DateFormat="yyyy/MM/dd"
                                    MaxValue="DateTime.Today"
                                    ViewMode="DatePickerViewMode.Date"
-                                   DisplayText="開始日" />
+                                   DisplayText="開始日"
+                                   OnValueChanged="OnDateFromChanged" />
                 </div>
                 <div class="col-12 col-sm-6">
                     <label for="enddate" class="form-label small text-muted">終了日</label>
@@ -40,7 +52,8 @@
                                    DateFormat="yyyy/MM/dd"
                                    MaxValue="DateTime.Today"
                                    ViewMode="DatePickerViewMode.Date"
-                                   DisplayText="終了日" />
+                                   DisplayText="終了日"
+                                   OnValueChanged="OnDateToChanged" />
                 </div>
             </div>
 
@@ -50,36 +63,30 @@
                     <label for="language" class="form-label small text-muted">言語</label>
                     <Select @bind-Value="selectedLanguage"
                            DisplayText="言語"
-                           Items="@languageOptions" />
+                           Items="@languageOptions"
+                           OnSelectedItemChanged="OnLanguageChanged" />
                 </div>
                 <div class="col-12 col-sm-6">
                     <label for="sortby" class="form-label small text-muted">並び替え</label>
                     <Select @bind-Value="selectedSortBy"
                            DisplayText="並び替え"
-                           Items="@sortByOptions" />
+                           Items="@sortByOptions"
+                           OnSelectedItemChanged="OnSortByChanged" />
                 </div>
             </div>
 
-            <!-- 検索ボタン -->
-            <div class="d-flex gap-2">
-                <Button Color="Color.Primary"
-                       Icon="fa-solid fa-search"
-                       OnClick="SearchNews"
-                       IsDisabled="@isLoading">
+            <!-- Rx.NET情報表示 -->
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <strong>完全自動検索:</strong> すべての条件変更で自動的に検索を実行（キーワードは0.5秒後）
                     @if (isLoading)
                     {
-                        <span>検索中...</span>
+                        <span class="ms-2">
+                            <i class="fa-solid fa-spinner fa-spin"></i> 検索中...
+                        </span>
                     }
-                    else
-                    {
-                        <span>検索</span>
-                    }
-                </Button>
-                <Button Color="Color.Secondary"
-                       Icon="fa-solid fa-times"
-                       OnClick="ClearSearch">
-                    クリア
-                </Button>
+                </small>
             </div>
         </div>
     </div>
@@ -174,6 +181,14 @@
     private string ApiKey = string.Empty;
     private string NewsAPIUrl = string.Empty;
 
+    // Rx.NET用のSubject
+    private readonly Subject<string> keywordSubject = new();
+    private readonly Subject<string> languageSubject = new();
+    private readonly Subject<DateTime?> dateFromSubject = new();
+    private readonly Subject<DateTime?> dateToSubject = new();
+    private readonly Subject<string> sortBySubject = new();
+    private IDisposable? searchSubscription;
+
     // Select用のオプション
     private List<SelectedItem> languageOptions = new()
     {
@@ -197,22 +212,207 @@
     {
         ApiKey = Configuration["ApiKeys:NewsAPIKey"] ?? "YOUR_NEWS_API_KEY";
         NewsAPIUrl = Configuration["NewsAPIUrl"] ?? "https://NewsAPI";
+
+        // Rx.NETのリアクティブパイプラインをセットアップ
+        SetupReactiveSearch();
     }
 
-    public async Task SearchNews()
+    private void SetupReactiveSearch()
     {
-        if (string.IsNullOrWhiteSpace(searchKeywords))
+        // キーワードストリーム: Throttle + DistinctUntilChanged
+        var keywordStream = keywordSubject
+            .Throttle(TimeSpan.FromMilliseconds(500))  // 0.5秒待機
+            .DistinctUntilChanged();                   // 同じ値は無視
+
+        // 言語ストリーム: DistinctUntilChanged
+        var languageStream = languageSubject
+            .DistinctUntilChanged();                   // 同じ値は無視
+
+        // 期間ストリーム: DistinctUntilChanged
+        var dateFromStream = dateFromSubject
+            .DistinctUntilChanged();
+
+        var dateToStream = dateToSubject
+            .DistinctUntilChanged();
+
+        // 並び替えストリーム: DistinctUntilChanged
+        var sortByStream = sortBySubject
+            .DistinctUntilChanged();
+
+        // CombineLatest: すべての検索条件を監視
+        searchSubscription = Observable.CombineLatest(
+            keywordStream,
+            languageStream,
+            dateFromStream,
+            dateToStream,
+            sortByStream,
+            (keyword, language, from, to, sortBy) => new
+            {
+                Keyword = keyword,
+                Language = language,
+                DateFrom = from,
+                DateTo = to,
+                SortBy = sortBy
+            }
+        )
+        .SelectMany(async searchParams =>           // Switch相当: 古いリクエストを自動キャンセル
         {
-            await ToastService.Warning("キーワード入力", "キーワードを入力してください");
-            return;
+            // 空のキーワードの場合は検索しない
+            if (string.IsNullOrWhiteSpace(searchParams.Keyword))
+            {
+                return (NewsApiResponse?)null;
+            }
+
+            return await PerformSearchWithAllParams(
+                searchParams.Keyword,
+                searchParams.Language,
+                searchParams.DateFrom,
+                searchParams.DateTo,
+                searchParams.SortBy
+            );
+        })
+        .Subscribe(
+            result =>
+            {
+                searchResults = result;
+                InvokeAsync(StateHasChanged);
+            },
+            error =>
+            {
+                System.Console.WriteLine($"Error in reactive search: {error.Message}");
+                InvokeAsync(StateHasChanged);
+            }
+        );
+
+        // 初期値を送信
+        languageSubject.OnNext(selectedLanguage);
+        dateFromSubject.OnNext(dateFrom);
+        dateToSubject.OnNext(dateTo);
+        sortBySubject.OnNext(selectedSortBy);
+    }
+
+    public void OnKeywordInput(ChangeEventArgs e)
+    {
+        searchKeywords = e.Value?.ToString() ?? string.Empty;
+        keywordSubject.OnNext(searchKeywords);
+    }
+
+    public Task OnLanguageChanged(SelectedItem item)
+    {
+        selectedLanguage = item.Value;
+        languageSubject.OnNext(selectedLanguage);
+        return Task.CompletedTask;
+    }
+
+    public Task OnDateFromChanged(DateTime? value)
+    {
+        dateFrom = value;
+        dateFromSubject.OnNext(value);
+        return Task.CompletedTask;
+    }
+
+    public Task OnDateToChanged(DateTime? value)
+    {
+        dateTo = value;
+        dateToSubject.OnNext(value);
+        return Task.CompletedTask;
+    }
+
+    public Task OnSortByChanged(SelectedItem item)
+    {
+        selectedSortBy = item.Value;
+        sortBySubject.OnNext(selectedSortBy);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        searchSubscription?.Dispose();
+        keywordSubject?.Dispose();
+        languageSubject?.Dispose();
+        dateFromSubject?.Dispose();
+        dateToSubject?.Dispose();
+        sortBySubject?.Dispose();
+    }
+
+    // リアクティブ検索用の内部メソッド（すべてのパラメータ対応）
+    public async Task<NewsApiResponse?> PerformSearchWithAllParams(
+        string keyword,
+        string language,
+        DateTime? from,
+        DateTime? to,
+        string sortBy)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return null;
         }
 
         isLoading = true;
+        await InvokeAsync(StateHasChanged);
 
         try
         {
             // キーワードをスペースで分割してAND条件用に連結
-            var keywords = string.Join(" AND ", searchKeywords.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            var keywords = string.Join(" AND ", keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+            // URLエンコード
+            var encodedKeywords = Uri.EscapeDataString(keywords);
+            var fromStr = from?.ToString("yyyy-MM-dd") ?? string.Empty;
+            var toStr = to?.ToString("yyyy-MM-dd") ?? string.Empty;
+
+            // NewsAPI エンドポイント構築
+            var url = $"{NewsAPIUrl}?q={encodedKeywords}" +
+                      $"&from={fromStr}&to={toStr}" +
+                      $"&language={language}" +
+                      $"&sortBy={sortBy}" +
+                      $"&apiKey={ApiKey}";
+
+            var response = await Http.GetFromJsonAsync<NewsApiResponse>(url);
+
+            if (response?.Articles?.Count > 0)
+            {
+                await ToastService.Success("検索成功", $"{response.TotalResults}件の記事が見つかりました");
+            }
+            else
+            {
+                await ToastService.Information("検索結果", "記事が見つかりませんでした");
+            }
+
+            return response;
+        }
+        catch (HttpRequestException ex) when (ex.Message.Contains("426"))
+        {
+            await ToastService.Warning("制限事項", "⚠️ NewsAPIの無料プランはlocalhost専用です。本番環境では動作しません。詳細はREADMEをご確認ください。");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("エラー", $"エラーが発生しました: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // 旧メソッド（後方互換性のため保持）
+    private async Task<NewsApiResponse?> PerformSearch(string keyword, string language)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            return null;
+        }
+
+        isLoading = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            // キーワードをスペースで分割してAND条件用に連結
+            var keywords = string.Join(" AND ", keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
             // URLエンコード
             var encodedKeywords = Uri.EscapeDataString(keywords);
@@ -222,37 +422,54 @@
             // NewsAPI エンドポイント構築
             var url = $"{NewsAPIUrl}?q={encodedKeywords}" +
                       $"&from={from}&to={to}" +
-                      $"&language={selectedLanguage}" +
+                      $"&language={language}" +
                       $"&sortBy={selectedSortBy}" +
                       $"&apiKey={ApiKey}";
 
             var response = await Http.GetFromJsonAsync<NewsApiResponse>(url);
-            searchResults = response;
 
-            if (searchResults?.Articles?.Count > 0)
+            if (response?.Articles?.Count > 0)
             {
-                await ToastService.Success("検索成功", $"{searchResults.TotalResults}件の記事が見つかりました");
+                await ToastService.Success("検索成功", $"{response.TotalResults}件の記事が見つかりました");
             }
             else
             {
                 await ToastService.Information("検索結果", "記事が見つかりませんでした");
             }
+
+            return response;
         }
         catch (HttpRequestException ex) when (ex.Message.Contains("426"))
         {
             await ToastService.Warning("制限事項", "⚠️ NewsAPIの無料プランはlocalhost専用です。本番環境では動作しません。詳細はREADMEをご確認ください。");
+            return null;
         }
         catch (Exception ex)
         {
             await ToastService.Error("エラー", $"エラーが発生しました: {ex.Message}");
+            return null;
         }
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    private async Task ClearSearch()
+    // 手動検索ボタン用
+    public async Task SearchNewsManually()
+    {
+        if (string.IsNullOrWhiteSpace(searchKeywords))
+        {
+            await ToastService.Warning("キーワード入力", "キーワードを入力してください");
+            return;
+        }
+
+        // リアクティブストリームに送信
+        keywordSubject.OnNext(searchKeywords);
+    }
+
+    public async Task ClearSearch()
     {
         searchKeywords = string.Empty;
         dateFrom = DateTime.Today.AddDays(-7);
@@ -260,15 +477,15 @@
         selectedLanguage = "jp";
         selectedSortBy = "publishedAt";
         searchResults = null;
-        await ToastService.Information("クリア", "検索条件をクリアしました");
-    }
 
-    private void HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            _ = SearchNews();
-        }
+        // リアクティブストリームをリセット（すべての条件）
+        keywordSubject.OnNext(string.Empty);
+        languageSubject.OnNext(selectedLanguage);
+        dateFromSubject.OnNext(dateFrom);
+        dateToSubject.OnNext(dateTo);
+        sortBySubject.OnNext(selectedSortBy);
+
+        await ToastService.Information("クリア", "検索条件をクリアしました");
     }
 
     private void OpenArticle(string url)
