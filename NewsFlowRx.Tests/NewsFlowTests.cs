@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using BootstrapBlazor.Components;
-using NewsFlow.Pages;
+using NewsFlowRx.Pages;
 
-namespace NewsFlow.Tests;
+namespace NewsFlowRx.Tests;
 
 /// <summary>
 /// News.razor の SearchNews() メソッドを直接呼び出す単体テスト

@@ -1,25 +1,37 @@
-# NewsFlowBB (旧 NewsFlow)
+# NewsFlowRx
 
-ニュース検索アプリケーション - .NET Blazor WebAssembly + NewsAPI
+ニュース検索アプリケーション - .NET Blazor WebAssembly + NewsAPI + Rx.NET
 
 ![Blazor](https://img.shields.io/badge/Blazor-WebAssembly-purple)
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue)
+![Rx.NET](https://img.shields.io/badge/Rx.NET-6.0-orange)
 ![BootstrapBlazor](https://img.shields.io/badge/BootstrapBlazor-9.11-blue)
 ![PWA](https://img.shields.io/badge/PWA-Ready-green)
 ![Tests](https://img.shields.io/badge/Tests-xUnit%20%2B%20bUnit-success)
 
 ## 📖 概要
 
-NewsFlowBBは、.NET Blazor WebAssemblyとNewsAPIを使用したニュース検索アプリケーションです。.NET Blazor WebAssemblyプログラミングの学習を目的とした教育プロジェクトとして開発されました。
+NewsFlowRxは、.NET Blazor WebAssemblyと**Rx.NET（Reactive Extensions）**を使用したニュース検索アプリケーションです。**リアクティブプログラミング**の学習を目的とした教育プロジェクトとして開発されました。
 
-### UIフレームワーク変更履歴
+### プロジェクトの進化
 
-**2025年：MudBlazor → BootstrapBlazor へ移行**
+**NewsFlowBB（ベースプロジェクト）からの改良**
 
-MudBlazorは優れたUIコンポーネントライブラリですが、単体テスト（xUnit + bUnit）の実装が複雑で、チーム開発での保守性に課題があることが判明しました。そのため、より軽量でテストしやすいBootstrapBlazorに移行しました。
+このプロジェクトは、BootstrapBlazorベースのNewsFlowBBをベースに、**Rx.NET（Reactive Extensions）を追加**してリアクティブプログラミングの概念を実装した学習プロジェクトです。
 
-**移行の主な理由：**
-- 単体テストの実装が容易
+**Rx.NETによる改良ポイント：**
+
+| Rx.NETオペレーター | 実装機能 | 効果 |
+|:---|:---|:---|
+| **Throttle** | 入力が0.5秒止まるまで待機 | APIリクエストを効率化し、無駄な通信を削減 |
+| **DistinctUntilChanged** | 同じキーワードの連続入力を無視 | 重複リクエストを防止 |
+| **CombineLatest** | キーワード + カテゴリの複合検索 | 複数の入力ソースを効率的に統合 |
+| **Switch** | 新しい入力時に古いリクエストをキャンセル | 常に最新の検索結果のみを表示 |
+
+### UIフレームワーク選定
+
+**BootstrapBlazorを選択した理由：**
+- 単体テスト（xUnit + bUnit）の実装が容易
 - コンポーネントのシンプルな構造
 - チーム開発での保守性向上
 - Bootstrapベースの親しみやすいUI
@@ -31,6 +43,8 @@ MudBlazorは優れたUIコンポーネントライブラリですが、単体テ
 - 📅 **期間指定**: 開始日・終了日で検索範囲を絞り込み
 - 🌐 **多言語対応**: 日本語、英語、ドイツ語など7言語に対応
 - 📊 **並び替え**: 公開日時、関連度、人気度で並び替え
+- ⚡ **リアクティブ検索**: Rx.NETによる効率的なAPI呼び出し制御
+- 🔄 **自動キャンセル**: 古いリクエストを自動的にキャンセル
 - 📱 **PWA対応**: オフラインキャッシュとインストール機能
 - 🎨 **モダンUI**: BootstrapBlazorによる直感的なBootstrapデザイン
 - ✅ **単体テスト**: xUnit + bUnitによるコンポーネントテスト
@@ -38,6 +52,7 @@ MudBlazorは優れたUIコンポーネントライブラリですが、単体テ
 ## 🛠️ 技術スタック
 
 - **フレームワーク**: .NET 8.0 Blazor WebAssembly
+- **リアクティブ**: System.Reactive 6.0 (Rx.NET)
 - **UIライブラリ**: BootstrapBlazor 9.11
 - **API**: NewsAPI (無料プラン)
 - **デプロイ**: GitHub Pages + GitHub Actions
@@ -49,22 +64,32 @@ MudBlazorは優れたUIコンポーネントライブラリですが、単体テ
 
 このプロジェクトで学べる内容：
 
-1. **Blazor WebAssembly**
+1. **Rx.NET（Reactive Extensions）** ⭐ 新規追加
+   - **Throttle**: ユーザー入力のデバウンス処理
+   - **DistinctUntilChanged**: 重複イベントのフィルタリング
+   - **CombineLatest**: 複数のイベントストリームの結合
+   - **Switch**: 非同期処理の自動キャンセル
+   - **Subject**: イベントストリームの作成と管理
+   - **Observable**: リアクティブストリームの購読と解除
+
+2. **Blazor WebAssembly**
    - コンポーネント指向の開発
    - データバインディング
    - ライフサイクルメソッド
+   - Rx.NETとの統合パターン
 
-2. **PWA開発**
+3. **PWA開発**
    - Service Workerによるキャッシング
    - オフライン対応
    - インストール可能なWebアプリ
 
-3. **単体テスト**
+4. **単体テスト**
    - xUnitによるユニットテスト
    - bUnitによるBlazorコンポーネントテスト
    - Moqによるモックオブジェクト作成
+   - Rx.NETのテストパターン
 
-4. **CI/CD**
+5. **CI/CD**
    - GitHub Actionsによる自動デプロイ
    - GitHub Secretsによる機密情報管理
    - GitHub Pagesへの静的サイト配信
@@ -202,25 +227,23 @@ NewsAPIの無料プランには以下の制限があります：
 ## 📂 プロジェクト構造
 
 ```
-NewsFlowBB/
-├── NewsFlow/                    # メインプロジェクト
+NewsFlowRx/
+├── NewsFlowRx/                  # メインプロジェクト
 │   ├── Pages/
-│   │   ├── News.razor          # ニュース検索ページ
-│   │   ├── Home.razor          # ホームページ
+│   │   ├── News.razor          # ニュース検索ページ（Rx.NET統合）
 │   │   └── ...
 │   ├── Layout/
 │   │   ├── MainLayout.razor    # メインレイアウト
-│   │   └── NavMenu.razor       # ナビゲーションメニュー
 │   ├── wwwroot/
 │   │   ├── index.html          # エントリーポイント
 │   │   ├── service-worker.js   # Service Worker
 │   │   ├── manifest.webmanifest # PWA マニフェスト
 │   │   └── appsettings.json    # 設定ファイル（Git管理外）
 │   ├── Program.cs              # アプリケーションエントリーポイント
-│   └── NewsFlow.csproj         # プロジェクトファイル
-├── NewsFlow.Tests/              # テストプロジェクト
+│   └── NewsFlowRx.csproj       # プロジェクトファイル
+├── NewsFlowRx.Tests/            # テストプロジェクト
 │   ├── [テストファイル].cs      # xUnit + bUnit テスト
-│   └── NewsFlow.Tests.csproj   # テストプロジェクトファイル
+│   └── NewsFlowRx.Tests.csproj # テストプロジェクトファイル
 ├── .github/
 │   ├── workflows/
 │   │   └── deploy.yml          # GitHub Actions ワークフロー
@@ -240,6 +263,7 @@ NewsFlowBB/
 ## 🙏 謝辞
 
 - [NewsAPI](https://newsapi.org/) - ニュースデータ提供
+- [Reactive Extensions](https://github.com/dotnet/reactive) - Rx.NETライブラリ
 - [BootstrapBlazor](https://www.blazor.zone/) - UIコンポーネントライブラリ
 - [.NET Team](https://dotnet.microsoft.com/) - Blazor WebAssemblyフレームワーク
 - [bUnit](https://bunit.dev/) - Blazorコンポーネントテストライブラリ
@@ -248,4 +272,4 @@ NewsFlowBB/
 
 **学習プロジェクトとして作成されました** 🎓
 
-このアプリケーションは、Blazor WebAssemblyの学習を目的としています。商用利用を想定していません。
+このアプリケーションは、Blazor WebAssemblyと**Rx.NET（リアクティブプログラミング）**の学習を目的としています。商用利用を想定していません。

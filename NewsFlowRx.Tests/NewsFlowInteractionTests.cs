@@ -16,10 +16,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
-using NewsFlow.Pages;
+using NewsFlowRx.Pages;
 using Xunit;
 
-namespace NewsFlow.Tests;
+namespace NewsFlowRx.Tests;
 
 /// <summary>
 /// News.razor のユーザーインタラクションを検証するテスト
