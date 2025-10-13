@@ -54,18 +54,31 @@ jobs:
           EOF
           sed -i "s/\$NEWS_API_KEY/${NEWS_API_KEY}/g" publish/wwwroot/appsettings.json
 
+      - name: Set base path for GitHub Pages
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          OWNER_SLUG="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          REPO_SLUG="$(echo "${REPO_NAME}" | tr '[:upper:]' '[:lower:]')"
+          if [ "${REPO_SLUG}" = "${OWNER_SLUG}.github.io" ]; then
+            BASE_PATH="/"
+          else
+            BASE_PATH="/${REPO_NAME}/"
+          fi
+          echo "Using base path: ${BASE_PATH}"
+          echo "BASE_PATH=${BASE_PATH}" >> "${GITHUB_ENV}"
+
       - name: Change base href in index.html
-        run: sed -i 's/<base href="\/" \/>/<base href="\/NewsFlow\/" \/>/g' publish/wwwroot/index.html
+        run: sed -i "s|<base href=\"/\" />|<base href=\"${BASE_PATH}\" />|g" publish/wwwroot/index.html
 
       - name: Change base path in service-worker files
         run: |
           if [ -f publish/wwwroot/service-worker.published.js ]; then
             echo "Updating service-worker.published.js"
-            sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.published.js
+            sed -i "s|const base = \"/\";|const base = \"${BASE_PATH}\";|g" publish/wwwroot/service-worker.published.js
           fi
           if [ -f publish/wwwroot/service-worker.js ]; then
             echo "Updating service-worker.js"
-            sed -i 's/const base = "\/";/const base = "\/NewsFlow\/";/g' publish/wwwroot/service-worker.js
+            sed -i "s|const base = \"/\";|const base = \"${BASE_PATH}\";|g" publish/wwwroot/service-worker.js
           fi
 
       - name: Update service-worker-assets.js integrity hashes
