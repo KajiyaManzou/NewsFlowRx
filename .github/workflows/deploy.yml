@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy NewsFlowRx to GitHub Pages
 
 on:
   push:
@@ -27,13 +27,13 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore NewsFlow/NewsFlow.csproj
+        run: dotnet restore NewsFlowRx/NewsFlowRx.csproj
 
       - name: Build
-        run: dotnet build NewsFlow/NewsFlow.csproj --configuration Release --no-restore
+        run: dotnet build NewsFlowRx/NewsFlowRx.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish NewsFlow/NewsFlow.csproj -c Release -o publish
+        run: dotnet publish NewsFlowRx/NewsFlowRx.csproj -c Release -o publish
 
       - name: Create appsettings files with API key from secrets
         env:

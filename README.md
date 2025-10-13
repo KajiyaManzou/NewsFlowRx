@@ -125,15 +125,15 @@ cp NewsFlow/wwwroot/appsettings.json.example NewsFlow/wwwroot/appsettings.json
 
 3. **アプリケーションの起動**
 ```bash
-dotnet restore NewsFlow/NewsFlow.csproj
-dotnet watch run --project NewsFlow/NewsFlow.csproj
+dotnet restore NewsFlowRx/NewsFlowRx.csproj
+dotnet watch run --project NewsFlowRx/NewsFlowRx.csproj
 ```
 
 ブラウザで http://localhost:5000 にアクセス
 
 4. **テストの実行**
 ```bash
-dotnet test NewsFlow.Tests/NewsFlow.Tests.csproj
+dotnet test NewsFlowRx.Tests/NewsFlowRx.Tests.csproj
 ```
 
 ## 📱 PWA機能
@@ -168,7 +168,7 @@ dotnet test NewsFlow.Tests/NewsFlow.Tests.csproj
 
 ### デプロイURL
 
-- 本番環境: https://kajiyamanzou.github.io/NewsFlowBB/
+- 本番環境: https://kajiyamanzou.github.io/NewsFlowRx/
 
 ## ⚠️ 制限事項と注意点
 
@@ -184,7 +184,7 @@ NewsAPIの無料プランには以下の制限があります：
 | 商用利用 | 不可 |
 
 **GitHub Pagesでの動作について**：
-- ❌ 本番環境（https://kajiyamanzou.github.io/NewsFlowBB/）では426エラーが発生します
+- ❌ 本番環境（https://kajiyamanzou.github.io/NewsFlowRx/）では426エラーが発生します
 - ✅ ローカル開発環境（http://localhost:5000）では正常に動作します
 
 ### 本番環境で動作させる方法
