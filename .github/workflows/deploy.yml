@@ -26,6 +26,40 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Create appsettings files with API key from secrets
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          NEWS_API_URL: https://newsapi.org/v2/everything
+        run: |
+          cat > NewsFlowRx/wwwroot/appsettings.json <<EOF
+          {
+            "ApiKeys": {
+              "NewsAPIKey": "${NEWS_API_KEY}"
+            },
+            "NewsAPIUrl": "${NEWS_API_URL}",
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            }
+          }
+          EOF
+          cat > NewsFlowRx/wwwroot/appsettings.Development.json <<EOF
+          {
+            "ApiKeys": {
+              "NewsAPIKey": "${NEWS_API_KEY}"
+            },
+            "NewsAPIUrl": "${NEWS_API_URL}",
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            }
+          }
+          EOF
+
       - name: Restore dependencies
         run: dotnet restore NewsFlowRx/NewsFlowRx.csproj
 
@@ -34,40 +68,6 @@ jobs:
 
       - name: Publish
         run: dotnet publish NewsFlowRx/NewsFlowRx.csproj -c Release -o publish
-
-      - name: Create appsettings files with API key from secrets
-        env:
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
-          NEWS_API_URL: https://newsapi.org/v2/everything
-        run: |
-          cat > publish/wwwroot/appsettings.json <<EOF
-          {
-            "ApiKeys": {
-              "NewsAPIKey": "${NEWS_API_KEY}"
-            },
-            "NewsAPIUrl": "${NEWS_API_URL}",
-            "Logging": {
-              "LogLevel": {
-                "Default": "Information",
-                "Microsoft.AspNetCore": "Warning"
-              }
-            }
-          }
-          EOF
-          cat > publish/wwwroot/appsettings.Development.json <<EOF
-          {
-            "ApiKeys": {
-              "NewsAPIKey": "${NEWS_API_KEY}"
-            },
-            "NewsAPIUrl": "${NEWS_API_URL}",
-            "Logging": {
-              "LogLevel": {
-                "Default": "Information",
-                "Microsoft.AspNetCore": "Warning"
-              }
-            }
-          }
-          EOF
 
       - name: Set base path for GitHub Pages
         run: |
